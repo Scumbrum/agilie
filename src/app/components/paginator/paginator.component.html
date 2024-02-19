@@ -1,0 +1,13 @@
+<i class="material-icons" (click)="selectNext(-1)"><</i>
+
+@for (page of pages; track page.value) {
+  <span
+    (click)="onPageSelect(page)"
+    [class.selected]="page.value === currentPage"
+    [class.pasive]="page.type==='dotes'"
+  >
+  {{ page.type === 'page' ? page.value : '...' }}
+</span>
+}
+
+<i class="material-icons" (click)="selectNext(1)">></i>

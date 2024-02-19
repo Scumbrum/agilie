@@ -1,0 +1,43 @@
+@import 'styles/variables';
+
+:host {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+
+  i, span {
+    display: block;
+    margin-right: 10px;
+  }
+
+  span {
+    width: 20px;
+    height:  20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $white;
+    border-radius: 100%;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .pasive {
+    background: transparent;
+    align-items: flex-end;
+    cursor: auto;
+    margin-right: 7px;
+    margin-left: -7px;
+  }
+
+  i {
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .selected {
+    background-color:$primary-color;
+    color: $font;
+  }
+}

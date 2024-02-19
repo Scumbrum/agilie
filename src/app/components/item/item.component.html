@@ -1,0 +1,14 @@
+@if (item) {
+  <img
+    [ngSrc]="item.images.original.url"
+    [alt]="item.title" fill
+    (loadstart)="isLoading = true"
+    (load)="isLoading = false">
+}
+
+@if (isLoading) {
+  <app-loader></app-loader>
+} @else {
+  <h1 class="title">{{ item.title }}</h1>
+  <div class="date">{{ item.import_datetime | date: 'MMM dd YYYY' }}</div>
+}
