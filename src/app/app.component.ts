@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ItemComponent } from './components/item/item.component';
-import {BehaviorSubject, combineLatest, debounceTime, EMPTY, startWith, switchMap} from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, EMPTY, Observable, startWith, switchMap } from 'rxjs';
 import { ApiService } from './providers/api.service';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { IGIF, IPaginatorData } from './models/api.model';
@@ -26,7 +26,7 @@ import { PaginatorComponent } from './components/paginator/paginator.component';
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
-  public gifs!: IPaginatorData<IGIF[]>;
+  public gifs?: IPaginatorData<IGIF[]>;
   private readonly apiService = inject(ApiService);
   private readonly destroyRef = inject(DestroyRef);
   public isLoading = signal(false);
@@ -38,42 +38,46 @@ export class AppComponent implements OnInit {
 
   public query = new FormControl('');
 
-  private listenSearch(emit: boolean): void {
-    let listener$ = this.query.valueChanges
+  private switcher(value: string | null, page: number): Observable<IPaginatorData<IGIF[]>> {
+    if (value === this.prevSearch && page === this.prevPage) {
+      return EMPTY;
+    }
+
+    this.isLoading.set(true);
+
+    if (value !== this.prevSearch) {
+      this.currentPage = 1;
+      this.prevSearch = value!;
+    } else {
+      this.currentPage = page;
+    }
+
+    this.prevPage = page;
+
+    return this.apiService.searchGifs(value!, (this.currentPage - 1) * this.pageSize, this.pageSize);
+  }
+
+  private listenSearch(): void {
+    const listenerQuery$ = this.query.valueChanges
       .pipe(
         debounceTime(300),
         takeUntilDestroyed(this.destroyRef),
         startWith(this.query.value)
       )
 
-    combineLatest(
-      [listener$,
-      this.pageChanged$.pipe(debounceTime(300))]
-    )
+    const listenerPage$ = this.pageChanged$.pipe(debounceTime(300));
+
+    combineLatest([
+      listenerQuery$,
+      listenerPage$
+    ])
       .pipe(
-        switchMap(([value, page]) => {
-          if (value === this.prevSearch && page === this.prevPage) {
-            return EMPTY;
-          }
-
-          this.isLoading.set(true);
-
-          if (value !== this.prevSearch) {
-            this.currentPage = 1;
-            this.prevSearch = value!;
-          } else {
-            this.currentPage = page;
-          }
-
-          this.prevPage = page;
-
-          return this.apiService.searchGifs(value!, (this.currentPage - 1) * this.pageSize, this.pageSize);
-        })
+        switchMap(([value, page]) => this.switcher(value, page))
       ).subscribe({
         error: (error) => {
           alert(error.message);
           this.isLoading.set(false);
-          this.listenSearch(false);
+          this.listenSearch();
         },
         next: (value) => {
           this.gifs = value;
@@ -92,6 +96,6 @@ export class AppComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    this.listenSearch(true);
+    this.listenSearch();
   }
 }

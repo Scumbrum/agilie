@@ -1,9 +1,11 @@
 @if (item) {
   <img
-    [ngSrc]="item.images.original.url"
-    [alt]="item.title" fill
+    [src]="item.images.original.url"
+    [alt]="item.title"
     (loadstart)="isLoading = true"
-    (load)="isLoading = false">
+    (load)="isLoading = false"
+    loading="lazy"
+  >
 }
 
 @if (isLoading) {
